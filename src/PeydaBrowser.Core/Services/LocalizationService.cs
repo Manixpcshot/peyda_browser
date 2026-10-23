@@ -75,7 +75,12 @@ public sealed class LocalizationService : ILocalizationService
     private static IReadOnlyDictionary<string, string> LoadEmbedded(string language)
     {
         var assembly = typeof(LocalizationService).Assembly;
-        var resourceName = $"PeydaBrowser.Core.Resources.Strings.{language}.json";
+        // Resolve by suffix: the exact manifest name depends on MSBuild's
+        // LogicalName rules, which vary with project layout.
+        var suffix = $".Strings.{language}.json";
+        var resourceName = assembly.GetManifestResourceNames()
+            .FirstOrDefault(n => n.EndsWith(suffix, StringComparison.OrdinalIgnoreCase));
+        if (resourceName is null) return new Dictionary<string, string>();
         using var stream = assembly.GetManifestResourceStream(resourceName);
         if (stream is null) return new Dictionary<string, string>();
         using var reader = new StreamReader(stream);

@@ -24,9 +24,9 @@ public class AddressBarParserTests
     }
 
     [Theory]
-    [InlineData("example.com", "https://example.com/")]
+    [InlineData("example.com", "https://example.com")]
     [InlineData("www.example.com/docs", "https://www.example.com/docs")]
-    [InlineData("sub.domain.co.uk", "https://sub.domain.co.uk/")]
+    [InlineData("sub.domain.co.uk", "https://sub.domain.co.uk")]
     public void DomainLikeInput_GetsHttps(string input, string expectedPrefix)
     {
         var result = _parser.Parse(input, Bangs);

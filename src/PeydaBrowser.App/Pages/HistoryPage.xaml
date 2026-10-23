@@ -1,0 +1,73 @@
+<UserControl
+    x:Class="PeydaBrowser.App.Pages.HistoryPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid Padding="28" RowSpacing="14">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+        <Grid Grid.Row="0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Text="{Binding Strings.HistoryTitle}" Style="{ThemeResource TitleTextBlockStyle}" />
+            <Button x:Name="ClearButton" Grid.Column="1">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <FontIcon Glyph="&#xE74D;" FontSize="13" />
+                    <TextBlock Text="{Binding Strings.ClearTitle}" />
+                </StackPanel>
+                <Button.Flyout>
+                    <MenuFlyout x:Name="ClearFlyout" Opening="OnClearFlyoutOpening" />
+                </Button.Flyout>
+            </Button>
+        </Grid>
+        <TextBox Grid.Row="1" Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                 PlaceholderText="{Binding Strings.HistorySearchPlaceholder}" />
+        <Grid Grid.Row="2">
+            <TextBlock Text="{Binding Strings.HistoryEmpty}" Opacity="0.7"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}" />
+            <ScrollViewer>
+                <ItemsControl ItemsSource="{Binding Groups}">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <StackPanel Margin="0,10,0,4" Spacing="4">
+                                <TextBlock Text="{Binding Title}" Style="{ThemeResource SubtitleTextBlockStyle}" />
+                                <ListView ItemsSource="{Binding Entries}" SelectionMode="None"
+                                          IsItemClickEnabled="True" ItemClick="OnEntryClick">
+                                    <ListView.ItemTemplate>
+                                        <DataTemplate>
+                                            <Grid Padding="4" ColumnSpacing="10">
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition Width="24" />
+                                                    <ColumnDefinition Width="*" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                    <ColumnDefinition Width="Auto" />
+                                                </Grid.ColumnDefinitions>
+                                                <Image Source="{Binding FaviconUrl}" Width="16" Height="16" VerticalAlignment="Center" />
+                                                <StackPanel Grid.Column="1">
+                                                    <TextBlock Text="{Binding Title}" TextTrimming="CharacterEllipsis" />
+                                                    <TextBlock Text="{Binding Url}" Style="{ThemeResource CaptionTextBlockStyle}" Opacity="0.7"
+                                                               FlowDirection="LeftToRight" TextTrimming="CharacterEllipsis" />
+                                                </StackPanel>
+                                                <TextBlock Grid.Column="2" Text="{Binding LastVisitUtc, Converter={StaticResource DateTimeText}}"
+                                                           VerticalAlignment="Center" Opacity="0.7" />
+                                                <Button Grid.Column="3" Tag="{Binding}" Click="OnDeleteEntryClick"
+                                                        Background="Transparent" BorderThickness="0">
+                                                    <FontIcon Glyph="&#xE711;" FontSize="11" />
+                                                </Button>
+                                            </Grid>
+                                        </DataTemplate>
+                                    </ListView.ItemTemplate>
+                                </ListView>
+                            </StackPanel>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+            </ScrollViewer>
+        </Grid>
+    </Grid>
+</UserControl>

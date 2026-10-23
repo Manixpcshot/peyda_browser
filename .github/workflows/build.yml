@@ -1,0 +1,77 @@
+name: Build
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build, test and package (win-x64)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore solution
+        run: dotnet restore PeydaBrowser.sln
+
+      - name: Build solution (Release, x64)
+        run: dotnet build PeydaBrowser.sln -c Release -p:Platform=x64 --no-restore
+
+      - name: Run tests
+        run: |
+          dotnet test tests/PeydaBrowser.UnitTests/PeydaBrowser.UnitTests.csproj -c Release --no-restore
+          dotnet test tests/PeydaBrowser.IntegrationTests/PeydaBrowser.IntegrationTests.csproj -c Release --no-restore
+
+      - name: Publish app (win-x64, self-contained)
+        run: dotnet publish src/PeydaBrowser.App/PeydaBrowser.App.csproj -c Release -r win-x64 --self-contained true -o artifacts/publish/win-x64 --no-restore
+
+      - name: Read version from Directory.Build.props
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$props = Get-Content Directory.Build.props
+          $prefix = ($props.Project.PropertyGroup | Select-Object -First 1).VersionPrefix
+          $suffix = ($props.Project.PropertyGroup | Select-Object -First 1).VersionSuffix
+          $version = if ($suffix) { "$prefix-$suffix" } else { $prefix }
+          "version=$version" >> $env:GITHUB_OUTPUT
+          Write-Host "Peyda version: $version"
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Package (portable ZIP, self-extracting EXE, Setup EXE, MSIX, SHA-256)
+        shell: pwsh
+        run: >
+          ./installer/Package-All.ps1
+          -Version "${{ steps.version.outputs.version }}"
+          -Arch x64
+          -PublishDir "artifacts/publish/win-x64"
+          -OutDir "artifacts/release"
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: peyda-browser-${{ steps.version.outputs.version }}-win-x64
+          path: artifacts/release
+          if-no-files-found: error
+          retention-days: 14

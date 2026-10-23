@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>JSON theme model, validation, serialization and built-in themes for Peyda Browser. Malformed themes are sanitized, never able to crash the app.</Description>
+  </PropertyGroup>
+</Project>

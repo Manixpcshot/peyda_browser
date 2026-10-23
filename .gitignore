@@ -1,0 +1,47 @@
+## Build output
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+artifacts/
+publish/
+*.user
+*.suo
+.vs/
+
+## Test results
+[Tt]est[Rr]esults/
+coverage*.xml
+coverage*.json
+
+## Packages / installers (produced by CI, never committed)
+*.nupkg
+*.snupkg
+*.msix
+*.msixbundle
+*.appx
+*.appxbundle
+installer/Output/
+
+## Secrets and certificates - NEVER commit these
+*.pfx
+*.p12
+*.cer
+*.key
+*.pem
+*.snk
+secrets.json
+appsettings.*.local.json
+.env
+.env.*
+
+## Local browser profile data
+*.db
+*.db-shm
+*.db-wal
+profiles/
+
+## OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+*.swp

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>PeydaBrowser.Core</RootNamespace>
+    <Description>Platform-independent core logic of Peyda Browser: address-bar parsing, search engines, settings, history, bookmarks, sessions, shortcuts, localization and update selection.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <!-- WithCulture=false: stop MSBuild treating ".en."/".fa." as satellite-assembly cultures. -->
+    <EmbeddedResource Include="Resources\Strings.en.json" WithCulture="false" LogicalName="PeydaBrowser.Core.Resources.Strings.en.json" />
+    <EmbeddedResource Include="Resources\Strings.fa.json" WithCulture="false" LogicalName="PeydaBrowser.Core.Resources.Strings.fa.json" />
+  </ItemGroup>
+</Project>

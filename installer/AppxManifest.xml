@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  AppxManifest template for the Peyda Browser MSIX package.
+  New-Msix.ps1 replaces {{VERSION}} (four-part numeric) and {{ARCH}} and packs
+  this manifest with the published (unpackaged) app layout. The app runs as a
+  full-trust WinUI 3 desktop app inside the MSIX container.
+
+  Note: Peyda deliberately does NOT register a peyda:// protocol handler.
+  Internal pages are routed inside the app only (see docs/SECURITY.md).
+-->
+<Package
+  xmlns="http://schemas.microsoft.com/appx/manifest/foundation/windows10"
+  xmlns:uap="http://schemas.microsoft.com/appx/manifest/uap/windows10"
+  xmlns:rescap="http://schemas.microsoft.com/appx/manifest/foundation/windows10/restrictedcapabilities"
+  IgnorableNamespaces="uap rescap">
+
+  <Identity
+    Name="PeydaBrowser"
+    Publisher="CN=Peyda Browser Contributors"
+    Version="{{VERSION}}"
+    ProcessorArchitecture="{{ARCH}}" />
+
+  <Properties>
+    <DisplayName>Peyda Browser</DisplayName>
+    <PublisherDisplayName>Peyda Browser Contributors</PublisherDisplayName>
+    <Logo>Assets\StoreLogo.png</Logo>
+  </Properties>
+
+  <Dependencies>
+    <TargetDeviceFamily Name="Windows.Desktop" MinVersion="10.0.19041.0" MaxVersionTested="10.0.26100.0" />
+  </Dependencies>
+
+  <Resources>
+    <Resource Language="en-us" />
+    <Resource Language="fa-ir" />
+  </Resources>
+
+  <Applications>
+    <Application Id="App" Executable="PeydaBrowser.exe" EntryPoint="Windows.FullTrustApplication">
+      <uap:VisualElements
+        DisplayName="Peyda Browser"
+        Description="Peyda Browser - Your Web, Your Way"
+        Square150x150Logo="Assets\Square150x150Logo.png"
+        Square44x44Logo="Assets\Square44x44Logo.png"
+        BackgroundColor="#151821">
+        <uap:DefaultTile Wide310x150Logo="Assets\Wide310x150Logo.png" />
+        <uap:SplashScreen Image="Assets\SplashScreen.scale-200.png" />
+      </uap:VisualElements>
+    </Application>
+  </Applications>
+
+  <Capabilities>
+    <Capability Name="internetClient" />
+    <rescap:Capability Name="runFullTrust" />
+  </Capabilities>
+</Package>

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>File-system layout, profile management, safe file logging, hashing and the GitHub update checker for Peyda Browser.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PeydaBrowser.Core\PeydaBrowser.Core.csproj" />
+    <ProjectReference Include="..\PeydaBrowser.Theming\PeydaBrowser.Theming.csproj" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+</Project>

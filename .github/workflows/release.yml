@@ -1,0 +1,257 @@
+name: Release
+
+# Publishing policy (docs/RELEASE.md):
+# - Every successful push to main refreshes the rolling "nightly" pre-release.
+# - Tags vX.Y.Z (optionally -alpha/-beta) create a versioned release.
+# - Nothing is published unless build + tests + packaging all succeed.
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      channel:
+        description: 'Release channel'
+        required: true
+        default: 'nightly'
+        type: choice
+        options: [nightly, beta, stable]
+      version:
+        description: 'Version override (e.g. 0.2.0-beta). Leave empty to derive.'
+        required: false
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  package:
+    name: Build, test and package (${{ matrix.arch }})
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: x64
+            rid: win-x64
+            platform: x64
+          - arch: arm64
+            rid: win-arm64
+            platform: ARM64
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      is_prerelease: ${{ steps.version.outputs.is_prerelease }}
+      tag: ${{ steps.version.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Determine version
+        id: version
+        shell: pwsh
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+          INPUT_CHANNEL: ${{ inputs.channel }}
+        run: |
+          [xml]$props = Get-Content Directory.Build.props
+          $prefix = ($props.Project.PropertyGroup | Select-Object -First 1).VersionPrefix
+          $baseSuffix = ($props.Project.PropertyGroup | Select-Object -First 1).VersionSuffix
+
+          if ($env:INPUT_VERSION) {
+            $version = $env:INPUT_VERSION.TrimStart('v')
+            $tag = "v$version"
+            $prerelease = $version -match '-'
+          }
+          elseif ($env:GITHUB_REF -like 'refs/tags/v*') {
+            $version = $env:GITHUB_REF_NAME.TrimStart('v')
+            $tag = $env:GITHUB_REF_NAME
+            $prerelease = $version -match '-'
+          }
+          else {
+            $date = Get-Date -Format 'yyyyMMdd'
+            $sha = $env:GITHUB_SHA.Substring(0, 7)
+            $channel = if ($env:INPUT_CHANNEL) { $env:INPUT_CHANNEL } else { 'nightly' }
+            if ($channel -eq 'stable') { $version = $prefix }
+            elseif ($channel -eq 'beta') { $version = "$prefix-beta.$date" }
+            else { $version = "$prefix-nightly.$date.$sha" }
+            $tag = if ($channel -eq 'nightly') { 'nightly' } else { "v$version" }
+            $prerelease = $version -match '-'
+          }
+
+          $parts = $version -split '-', 2
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "version_prefix=$($parts[0])" >> $env:GITHUB_OUTPUT
+          "version_suffix=$(if ($parts.Count -gt 1) { $parts[1] } else { '' })" >> $env:GITHUB_OUTPUT
+          "is_prerelease=$($prerelease.ToString().ToLower())" >> $env:GITHUB_OUTPUT
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          Write-Host "Version=$version Tag=$tag Prerelease=$prerelease"
+
+      - name: Restore solution
+        run: dotnet restore PeydaBrowser.sln
+
+      # Full-solution build only on the host architecture: building the whole
+      # solution with -p:Platform=ARM64 on an x64 runner makes the test
+      # projects fail with a RID/PlatformTarget mismatch. The ARM64 leg goes
+      # straight to `dotnet publish -r win-arm64` of the app project, which
+      # builds every library it depends on for the right RID.
+      - name: Build solution (x64 leg only; tests + ARM64 publish compile the rest)
+        if: matrix.arch == 'x64'
+        run: >
+          dotnet build PeydaBrowser.sln -c Release -p:Platform=${{ matrix.platform }} --no-restore
+          -p:VersionPrefix=${{ steps.version.outputs.version_prefix }}
+          -p:VersionSuffix=${{ steps.version.outputs.version_suffix }}
+
+      - name: Run tests (x64 leg only; identical code paths)
+        if: matrix.arch == 'x64'
+        run: |
+          dotnet test tests/PeydaBrowser.UnitTests/PeydaBrowser.UnitTests.csproj -c Release --no-restore
+          dotnet test tests/PeydaBrowser.IntegrationTests/PeydaBrowser.IntegrationTests.csproj -c Release --no-restore
+
+      - name: Publish app
+        run: >
+          dotnet publish src/PeydaBrowser.App/PeydaBrowser.App.csproj -c Release
+          -r ${{ matrix.rid }} --self-contained true
+          -o artifacts/publish/${{ matrix.rid }} --no-restore
+          -p:VersionPrefix=${{ steps.version.outputs.version_prefix }}
+          -p:VersionSuffix=${{ steps.version.outputs.version_suffix }}
+
+      - name: Install Inno Setup
+        run: choco install innosetup --no-progress -y
+
+      - name: Package release files
+        shell: pwsh
+        env:
+          # Optional code signing. The certificate itself is never stored in the repo;
+          # CI reads it from GitHub Secrets only (base64-encoded PFX + password).
+          PEYDA_SIGN_PFX_BASE64: ${{ secrets.PEYDA_SIGN_PFX_BASE64 }}
+          PEYDA_SIGN_PFX_PASSWORD: ${{ secrets.PEYDA_SIGN_PFX_PASSWORD }}
+        run: >
+          ./installer/Package-All.ps1
+          -Version "${{ steps.version.outputs.version }}"
+          -Arch ${{ matrix.arch }}
+          -PublishDir "artifacts/publish/${{ matrix.rid }}"
+          -OutDir "artifacts/release"
+
+      - name: Upload packaged files
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ matrix.arch }}
+          path: artifacts/release
+          if-no-files-found: error
+          retention-days: 7
+
+  publish:
+    name: Publish GitHub Release
+    needs: package
+    runs-on: windows-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Download all packaged files
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts/incoming
+          pattern: release-*
+          merge-multiple: true
+
+      - name: Assemble release assets
+        shell: pwsh
+        env:
+          VERSION: ${{ needs.package.outputs.version }}
+          TAG: ${{ needs.package.outputs.tag }}
+          IS_PRERELEASE: ${{ needs.package.outputs.is_prerelease }}
+          PEYDA_SIGN_PFX_BASE64: ${{ secrets.PEYDA_SIGN_PFX_BASE64 }}
+        run: |
+          $out = "artifacts/final"
+          New-Item -ItemType Directory -Force -Path $out | Out-Null
+          Get-ChildItem artifacts/incoming -File | Where-Object Name -ne 'SHA256SUMS.txt' |
+            Copy-Item -Destination $out
+
+          # Versioned source packages of exactly this commit.
+          git archive --format=zip -o "$out/PeydaBrowser-$env:VERSION-source.zip" HEAD
+          git archive --format=tar -o "artifacts/source.tar" HEAD
+          $sevenZip = "C:\Program Files\7-Zip\7z.exe"
+          if (Test-Path $sevenZip) { & $sevenZip a -tgzip "$out/PeydaBrowser-$env:VERSION-source.tar.gz" "artifacts/source.tar" | Out-Null }
+          else { throw "7-Zip is required to create the source tar.gz" }
+
+          Copy-Item CHANGELOG.md "$out/CHANGELOG.md"
+          Copy-Item LICENSE "$out/LICENSE.txt"
+          Copy-Item README.md "$out/README.md"
+
+          # One combined SHA256SUMS.txt covering every binary/source asset.
+          $lines = @()
+          Get-ChildItem $out -File | Where-Object { $_.Name -notmatch '^(CHANGELOG\.md|LICENSE\.txt|README\.md)$' } |
+            Sort-Object Name | ForEach-Object {
+              $hash = (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+              $lines += "$hash  $($_.Name)"
+            }
+          $lines | Set-Content "$out/SHA256SUMS.txt" -Encoding ascii
+
+          # Release notes.
+          $signed = if ($env:PEYDA_SIGN_PFX_BASE64) { "Binaries in this release are code-signed." }
+                    else { "**Warning: this build is NOT code-signed.** Windows SmartScreen may show a warning. Verify downloads against SHA256SUMS.txt before running them." }
+          $notes = @"
+          # Peyda Browser $env:VERSION
+
+          **Your Web, Your Way** · وب، آن‌طور که تو می‌خواهی
+
+          $signed
+
+          Peyda Browser requires the Microsoft Edge **WebView2 Runtime** (pre-installed on Windows 11 and current Windows 10 builds). The Setup installer checks for it and links to Microsoft's official download page if it is missing; nothing is downloaded silently.
+
+          ## Assets
+          - `*-portable.zip` – runs without installation (extract and start `PeydaBrowser.exe`)
+          - `PeydaBrowser-$env:VERSION-win-*.exe` – self-extracting portable app
+          - `PeydaBrowser-Setup-$env:VERSION-win-*.exe` – full installer with uninstaller
+          - `*.msix` – Windows app package (signed with a development certificate when no signing certificate is configured; importing that certificate is required to sideload)
+          - `*-source.zip` / `*-source.tar.gz` – source code of this exact release
+          - `SHA256SUMS.txt` – SHA-256 checksum of every asset above
+
+          See [CHANGELOG.md](https://github.com/Manixpcshot/peyda_browser/blob/main/CHANGELOG.md) for changes.
+          "@
+          $notes | Set-Content "artifacts/release-notes.md" -Encoding utf8
+
+          Get-ChildItem $out | Select-Object Name, Length
+
+      - name: Remove previous nightly release (rolling tag)
+        if: needs.package.outputs.tag == 'nightly'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release delete nightly --yes --cleanup-tag 2>$null
+          if ($LASTEXITCODE -ne 0) { Write-Host "No previous nightly release to delete." }
+          exit 0
+
+      - name: Create GitHub Release with all assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ needs.package.outputs.version }}
+          TAG: ${{ needs.package.outputs.tag }}
+          IS_PRERELEASE: ${{ needs.package.outputs.is_prerelease }}
+        run: |
+          $files = Get-ChildItem artifacts/final -File | ForEach-Object FullName
+          $ghArgs = @('release', 'create', $env:TAG, '--title', "Peyda Browser $env:VERSION", '--notes-file', 'artifacts/release-notes.md', '--target', $env:GITHUB_SHA)
+          if ($env:IS_PRERELEASE -eq 'true') { $ghArgs += '--prerelease' }
+          if ($env:TAG -eq 'nightly') { $ghArgs = $ghArgs | Where-Object { $_ -ne '--target' -and $_ -ne $env:GITHUB_SHA } }
+          & gh @ghArgs @files
+          if ($LASTEXITCODE -ne 0) { throw "gh release create failed" }

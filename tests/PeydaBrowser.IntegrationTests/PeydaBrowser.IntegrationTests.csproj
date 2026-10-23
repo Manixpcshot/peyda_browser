@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\PeydaBrowser.Core\PeydaBrowser.Core.csproj" />
+    <ProjectReference Include="..\..\src\PeydaBrowser.Theming\PeydaBrowser.Theming.csproj" />
+    <ProjectReference Include="..\..\src\PeydaBrowser.Persistence\PeydaBrowser.Persistence.csproj" />
+    <ProjectReference Include="..\..\src\PeydaBrowser.Infrastructure\PeydaBrowser.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit.v3" />
+    <PackageReference Include="xunit.runner.visualstudio">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+</Project>

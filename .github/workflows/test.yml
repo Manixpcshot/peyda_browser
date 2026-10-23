@@ -1,0 +1,51 @@
+name: Test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: test-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: Unit and integration tests (windows-latest)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up .NET 10
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('Directory.Packages.props', '**/*.csproj') }}
+          restore-keys: nuget-${{ runner.os }}-
+
+      - name: Restore test projects
+        run: |
+          dotnet restore tests/PeydaBrowser.UnitTests/PeydaBrowser.UnitTests.csproj
+          dotnet restore tests/PeydaBrowser.IntegrationTests/PeydaBrowser.IntegrationTests.csproj
+
+      - name: Run unit tests
+        run: dotnet test tests/PeydaBrowser.UnitTests/PeydaBrowser.UnitTests.csproj -c Release
+
+      - name: Run integration tests
+        run: dotnet test tests/PeydaBrowser.IntegrationTests/PeydaBrowser.IntegrationTests.csproj -c Release
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: artifacts/test-results
+          if-no-files-found: ignore

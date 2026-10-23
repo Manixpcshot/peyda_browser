@@ -1,0 +1,19 @@
+<Project>
+  <!-- Single source of truth for product metadata and versioning.
+       CI overrides VersionPrefix/VersionSuffix from the Git tag for stable releases. -->
+  <PropertyGroup>
+    <VersionPrefix>0.1.0</VersionPrefix>
+    <VersionSuffix>alpha</VersionSuffix>
+    <AssemblyVersion>0.1.0.0</AssemblyVersion>
+    <FileVersion>0.1.0.0</FileVersion>
+    <Product>Peyda Browser</Product>
+    <Company>Peyda Browser Contributors</Company>
+    <Copyright>Copyright (c) Peyda Browser Contributors</Copyright>
+    <Authors>Peyda Browser Contributors</Authors>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Deterministic>true</Deterministic>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+  </PropertyGroup>
+</Project>

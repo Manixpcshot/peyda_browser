@@ -576,7 +576,7 @@ public sealed partial class BrowserTabView : UserControl, IBrowserTabView
         var deferral = e.GetDeferral();
         try
         {
-            e.Action = CoreWebView2ServerCertificateErrorAction.Deny;
+            e.Action = CoreWebView2ServerCertificateErrorAction.Cancel;
             if (XamlRoot is null || _vm is null) return;
             var strings = Shell.Strings;
             var host = Uri.TryCreate(e.RequestUri, UriKind.Absolute, out var uri) ? uri.Host : e.RequestUri;

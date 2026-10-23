@@ -367,10 +367,12 @@ public sealed partial class MainViewModel : ObservableObject, IBrowserShell
     {
         Directory.CreateDirectory(_context.WebView2UserDataDirectory);
         _logger.LogInformation("Creating WebView2 environment for profile {ProfileId}", _context.Profile.Id);
+        // Positional on purpose: parameter names differ between the WebView2
+        // .NET projections (browserExecutableFolder, userDataFolder, options).
         return await CoreWebView2Environment.CreateAsync(
-            browserExecutableFolder: null,
-            userDataFolder: _context.WebView2UserDataDirectory,
-            options: new CoreWebView2EnvironmentOptions());
+            null,
+            _context.WebView2UserDataDirectory,
+            new CoreWebView2EnvironmentOptions());
     }
 
     public void InvalidateWebViewEnvironment() => _environmentTask = null;

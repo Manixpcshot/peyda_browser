@@ -42,7 +42,7 @@ verify `SHA256SUMS.txt` from the GitHub Release before installing.
   no script injection, no host objects, secret-redacting logs.
 - Privacy: no telemetry, no tracking; optional update *checker* that only
   links to the official GitHub release page.
-- 130+ automated tests (xUnit) and GitHub Actions (build, test, CodeQL,
+- 157 automated tests (xUnit, 149 unit + 8 integration, all green in CI) and GitHub Actions (build, test, CodeQL,
   Dependabot, automated releases).
 - Packaging: portable ZIP, self-extracting EXE, Inno Setup installer with
   uninstaller + WebView2 Runtime check, MSIX package, source archives and
@@ -53,6 +53,8 @@ verify `SHA256SUMS.txt` from the GitHub Release before installing.
 - Some keyboard shortcuts only trigger when keyboard focus is outside web
   content (WebView2 XAML hosting limitation; see docs/ARCHITECTURE.md).
 - No built-in password manager/autofill UI; WebView2 password autosave is off.
+- Page zoom is applied via Chromium's CSS zoom (the WinUI WebView2 control
+  exposes no native ZoomFactor); it is re-applied after each navigation.
 - Not yet a registered default browser; `file://` pages open only when typed.
 - Builds are unsigned until a code-signing certificate is configured in CI.
 

@@ -144,7 +144,12 @@ permission store.
 4. **Download pause/resume** maps to `CoreWebView2DownloadOperation`
    (`Pause`/`Resume`/`CanResume`); a download that the server cannot resume
    can only be re-started - the UI reflects `CanResume` honestly.
-5. **Default-browser registration** and protocol/file associations need
+5. **No native zoom API on the XAML control.** Unlike the WPF WebView2
+   control, `Microsoft.UI.Xaml.Controls.WebView2` has no `ZoomFactor` and
+   hides the underlying controller. Peyda applies Chromium's CSS `zoom` on
+   the document element and re-applies it after each navigation
+   (`BrowserTabView.ZoomFactor`).
+6. **Default-browser registration** and protocol/file associations need
    additional manifest capabilities and Settings-page UX; deferred post-0.1.
    `file://` is navigable only when typed by the user (pages cannot navigate
    frames to local files).

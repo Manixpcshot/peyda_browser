@@ -6,8 +6,6 @@ public sealed record SchemaMigration(int Version, string Name, string Sql);
 
 public static class SchemaMigrations
 {
-    public static IReadOnlyList<SchemaMigration> All { get; } = new SchemaMigration[] { V1, V2 };
-    public static int LatestVersion => All[^1].Version;
 
     private static readonly SchemaMigration V1 = new(1, "Initial schema", """
         CREATE TABLE IF NOT EXISTS Settings (
@@ -134,4 +132,10 @@ public static class SchemaMigrations
 
         ALTER TABLE Downloads ADD COLUMN Sha256 TEXT NULL;
         """);
+
+    // NOTE: All/LatestVersion must be declared AFTER the migration fields:
+    // static initializers run in textual order, so referencing V1/V2 earlier
+    // would capture nulls.
+    public static IReadOnlyList<SchemaMigration> All { get; } = new SchemaMigration[] { V1, V2 };
+    public static int LatestVersion => All[^1].Version;
 }

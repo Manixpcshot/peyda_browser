@@ -33,6 +33,12 @@
     <PackageReference Include="Microsoft.Extensions.Logging" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Assets\**" />
+    <!-- Explicit copy metadata: without it the PNG assets never reach the
+         publish output (unpackaged ms-appx:///Assets lookups and the MSIX
+         manifest asset references would both break). -->
+    <Content Include="Assets\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <CopyToPublishDirectory>PreserveNewest</CopyToPublishDirectory>
+    </Content>
   </ItemGroup>
 </Project>

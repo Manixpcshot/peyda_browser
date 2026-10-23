@@ -43,9 +43,9 @@ public sealed partial class SettingsPage : UserControl
         DensityCombo.Items.Add(s.SettingsDensityComfortable);
 
         ChannelCombo.Items.Clear();
-        ChannelCombo.Items.Add("Stable");
-        ChannelCombo.Items.Add("Beta");
-        ChannelCombo.Items.Add("Nightly");
+        ChannelCombo.Items.Add(s.SettingsChannelStable);
+        ChannelCombo.Items.Add(s.SettingsChannelBeta);
+        ChannelCombo.Items.Add(s.SettingsChannelNightly);
 
         // Re-apply two-way selections now that items exist.
         StartupCombo.SelectedIndex = ViewModel.StartupIndex;

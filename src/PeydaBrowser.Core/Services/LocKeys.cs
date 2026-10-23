@@ -187,6 +187,9 @@ public static class LocKeys
     public const string SettingsThemeSystem = "settings.themeSystem";
     public const string SettingsTitle = "settings.title";
     public const string SettingsUpdateChannel = "settings.updateChannel";
+    public const string SettingsChannelStable = "settings.channelStable";
+    public const string SettingsChannelBeta = "settings.channelBeta";
+    public const string SettingsChannelNightly = "settings.channelNightly";
     public const string SettingsVerticalTabsNote = "settings.verticalTabsNote";
     public const string TabClose = "tab.close";
     public const string TabCloseOthers = "tab.closeOthers";

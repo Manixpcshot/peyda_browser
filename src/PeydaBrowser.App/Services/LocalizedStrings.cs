@@ -205,6 +205,9 @@ public sealed partial class LocalizedStrings : INotifyPropertyChanged
     public string SettingsThemeSystem => _loc[LocKeys.SettingsThemeSystem];
     public string SettingsTitle => _loc[LocKeys.SettingsTitle];
     public string SettingsUpdateChannel => _loc[LocKeys.SettingsUpdateChannel];
+    public string SettingsChannelStable => _loc[LocKeys.SettingsChannelStable];
+    public string SettingsChannelBeta => _loc[LocKeys.SettingsChannelBeta];
+    public string SettingsChannelNightly => _loc[LocKeys.SettingsChannelNightly];
     public string SettingsVerticalTabsNote => _loc[LocKeys.SettingsVerticalTabsNote];
     public string TabClose => _loc[LocKeys.TabClose];
     public string TabCloseOthers => _loc[LocKeys.TabCloseOthers];

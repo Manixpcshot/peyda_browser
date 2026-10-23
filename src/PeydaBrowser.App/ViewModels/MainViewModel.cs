@@ -367,12 +367,10 @@ public sealed partial class MainViewModel : ObservableObject, IBrowserShell
     {
         Directory.CreateDirectory(_context.WebView2UserDataDirectory);
         _logger.LogInformation("Creating WebView2 environment for profile {ProfileId}", _context.Profile.Id);
-        // Positional on purpose: parameter names differ between the WebView2
-        // .NET projections (browserExecutableFolder, userDataFolder, options).
-        return await CoreWebView2Environment.CreateAsync(
-            null,
-            _context.WebView2UserDataDirectory,
-            new CoreWebView2EnvironmentOptions());
+        // Two-argument overload (browserExecutableFolder: null = use the
+        // installed Evergreen Runtime, userDataFolder: this profile's folder).
+        // The WinUI projection of CoreWebView2Environment has no 3-arg overload.
+        return await CoreWebView2Environment.CreateAsync(null, _context.WebView2UserDataDirectory);
     }
 
     public void InvalidateWebViewEnvironment() => _environmentTask = null;

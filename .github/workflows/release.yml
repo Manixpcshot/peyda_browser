@@ -103,7 +103,13 @@ jobs:
       - name: Restore solution
         run: dotnet restore PeydaBrowser.sln
 
-      - name: Build solution
+      # Full-solution build only on the host architecture: building the whole
+      # solution with -p:Platform=ARM64 on an x64 runner makes the test
+      # projects fail with a RID/PlatformTarget mismatch. The ARM64 leg goes
+      # straight to `dotnet publish -r win-arm64` of the app project, which
+      # builds every library it depends on for the right RID.
+      - name: Build solution (x64 leg only; tests + ARM64 publish compile the rest)
+        if: matrix.arch == 'x64'
         run: >
           dotnet build PeydaBrowser.sln -c Release -p:Platform=${{ matrix.platform }} --no-restore
           -p:VersionPrefix=${{ steps.version.outputs.version_prefix }}

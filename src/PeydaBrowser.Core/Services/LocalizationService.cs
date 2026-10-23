@@ -70,7 +70,7 @@ public sealed class LocalizationService : ILocalizationService
     }
 
     public IReadOnlyCollection<string> GetKeys(string language) =>
-        _catalogs.TryGetValue(language, out var catalog) ? catalog.Keys : Array.Empty<string>();
+        _catalogs.TryGetValue(language, out var catalog) ? catalog.Keys.ToArray() : Array.Empty<string>();
 
     private static IReadOnlyDictionary<string, string> LoadEmbedded(string language)
     {

@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>SQLite persistence for Peyda Browser using Microsoft.Data.Sqlite with parameterized queries and explicit, versioned schema migrations (PRAGMA user_version). See docs/ARCHITECTURE.md ADR-002 for why raw SQL migrations were chosen over EF Core migrations.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PeydaBrowser.Core\PeydaBrowser.Core.csproj" />
+    <ProjectReference Include="..\PeydaBrowser.Theming\PeydaBrowser.Theming.csproj" />
+    <PackageReference Include="Microsoft.Data.Sqlite" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" />
+  </ItemGroup>
+</Project>

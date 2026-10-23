@@ -1,0 +1,10 @@
+<ContentDialog
+    x:Class="PeydaBrowser.App.Pages.BookmarkEditDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <StackPanel Spacing="12" MinWidth="340">
+        <TextBox x:Name="TitleBox" />
+        <TextBox x:Name="UrlBox" FlowDirection="LeftToRight" />
+        <ComboBox x:Name="FolderCombo" HorizontalAlignment="Stretch" />
+    </StackPanel>
+</ContentDialog>

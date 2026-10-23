@@ -1,0 +1,38 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows10.0.26100.0</TargetFramework>
+    <TargetPlatformMinVersion>10.0.19041.0</TargetPlatformMinVersion>
+    <SupportedOSPlatformVersion>10.0.19041.0</SupportedOSPlatformVersion>
+    <RootNamespace>PeydaBrowser.App</RootNamespace>
+    <AssemblyName>PeydaBrowser</AssemblyName>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>PeydaBrowser.ico</ApplicationIcon>
+    <Platforms>x64;ARM64</Platforms>
+    <RuntimeIdentifiers>win-x64;win-arm64</RuntimeIdentifiers>
+    <UseWinUI>true</UseWinUI>
+    <!-- Peyda ships unpackaged (portable ZIP / Inno Setup) plus an MSIX produced
+         from the published layout in CI (see installer/ and docs/RELEASE.md). -->
+    <WindowsPackageType>None</WindowsPackageType>
+    <WindowsAppSDKSelfContained>true</WindowsAppSDKSelfContained>
+    <SelfContained>true</SelfContained>
+    <PublishSingleFile>false</PublishSingleFile>
+    <Description>Peyda Browser - Your Web, Your Way. A modern, highly customizable Windows browser built on WinUI 3 and Microsoft Edge WebView2 (Chromium).</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PeydaBrowser.Core\PeydaBrowser.Core.csproj" />
+    <ProjectReference Include="..\PeydaBrowser.Theming\PeydaBrowser.Theming.csproj" />
+    <ProjectReference Include="..\PeydaBrowser.Persistence\PeydaBrowser.Persistence.csproj" />
+    <ProjectReference Include="..\PeydaBrowser.WebEngine\PeydaBrowser.WebEngine.csproj" />
+    <ProjectReference Include="..\PeydaBrowser.Infrastructure\PeydaBrowser.Infrastructure.csproj" />
+    <PackageReference Include="Microsoft.WindowsAppSDK" />
+    <PackageReference Include="Microsoft.Windows.SDK.BuildTools" />
+    <PackageReference Include="Microsoft.Web.WebView2" />
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" />
+    <PackageReference Include="Microsoft.Extensions.Logging" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="Assets\**" />
+  </ItemGroup>
+</Project>

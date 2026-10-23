@@ -1,0 +1,62 @@
+<UserControl
+    x:Class="PeydaBrowser.App.Pages.NewTabPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    <Grid>
+        <Image x:Name="BackgroundImage" Stretch="UniformToFill" />
+        <ScrollViewer>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="16" Padding="24" MaxWidth="760">
+                <Image Source="ms-appx:///Assets/Logo.png" Width="72" Height="72"
+                       Visibility="{Binding Settings.NewTabShowLogo, Converter={StaticResource BoolToVisibility}}" />
+                <TextBlock Text="{Binding GreetingText}" Style="{ThemeResource TitleTextBlockStyle}" HorizontalAlignment="Center"
+                           Visibility="{Binding Settings.NewTabShowGreeting, Converter={StaticResource BoolToVisibility}}" />
+                <TextBlock Text="{Binding ClockText}" FontSize="56" FontWeight="SemiLight" HorizontalAlignment="Center"
+                           Visibility="{Binding Settings.NewTabShowClock, Converter={StaticResource BoolToVisibility}}" />
+                <TextBlock Text="{Binding DateText}" Style="{ThemeResource SubtitleTextBlockStyle}" HorizontalAlignment="Center"
+                           Opacity="0.8"
+                           Visibility="{Binding Settings.NewTabShowDate, Converter={StaticResource BoolToVisibility}}" />
+
+                <Grid Margin="0,12,0,0">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <ComboBox Grid.Column="0" ItemsSource="{Binding Engines}" DisplayMemberPath="Name"
+                              SelectedItem="{Binding SelectedEngine, Mode=TwoWay}" MinWidth="140" />
+                    <TextBox x:Name="SearchBox" Grid.Column="1" Margin="8,0"
+                             Text="{Binding SearchText, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                             PlaceholderText="{Binding Strings.NewtabSearchPlaceholder}"
+                             FlowDirection="LeftToRight"
+                             KeyDown="OnSearchBoxKeyDown" />
+                    <Button Grid.Column="2" Style="{ThemeResource AccentButtonStyle}" Command="{Binding SearchCommand}">
+                        <FontIcon Glyph="&#xE721;" FontSize="14" />
+                    </Button>
+                </Grid>
+
+                <StackPanel Visibility="{Binding Settings.NewTabShowShortcuts, Converter={StaticResource BoolToVisibility}}" Spacing="8">
+                    <GridView x:Name="ShortcutGrid" ItemsSource="{Binding Shortcuts}"
+                              IsItemClickEnabled="True" ItemClick="OnShortcutClick"
+                              CanDragItems="True" CanReorderItems="True" AllowDrop="True"
+                              DragItemsStarting="OnDragItemsStarting" DragItemsCompleted="OnDragItemsCompleted"
+                              SelectionMode="None" HorizontalAlignment="Center">
+                        <GridView.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Width="96" Padding="8" Spacing="6">
+                                    <Image Source="{Binding IconUrl}" Width="32" Height="32" />
+                                    <TextBlock Text="{Binding Title}" TextAlignment="Center" TextWrapping="WrapWholeWords" MaxLines="2" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </GridView.ItemTemplate>
+                    </GridView>
+                    <Button HorizontalAlignment="Center" Click="OnAddShortcutClick">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <FontIcon Glyph="&#xE710;" FontSize="12" />
+                            <TextBlock Text="{Binding Strings.NewtabAddShortcut}" />
+                        </StackPanel>
+                    </Button>
+                </StackPanel>
+            </StackPanel>
+        </ScrollViewer>
+    </Grid>
+</UserControl>

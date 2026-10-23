@@ -1,0 +1,32 @@
+<Window
+    x:Class="PeydaBrowser.App.MainWindow"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    Title="Peyda Browser">
+    <Grid x:Name="RootGrid" Background="{ThemeResource PeydaBackgroundBrush}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="40" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Custom title bar: content extends into it; the system caption
+             buttons (min/max/close) keep Snap Layouts and accessibility. -->
+        <Grid x:Name="AppTitleBar" Background="Transparent">
+            <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Margin="10,0,0,0" Spacing="8">
+                <Image Source="ms-appx:///Assets/Logo.png" Width="20" Height="20" />
+                <TextBlock x:Name="TitleBarText" Text="Peyda Browser"
+                           Style="{ThemeResource CaptionTextBlockStyle}" VerticalAlignment="Center" />
+            </StackPanel>
+        </Grid>
+
+        <TabView x:Name="BrowserTabs" Grid.Row="1"
+                 AllowDropTabs="True"
+                 CanDragTabs="True"
+                 CanReorderTabs="True"
+                 TabWidthMode="SizeToContent"
+                 AddTabButtonClick="OnAddTabButtonClick"
+                 TabCloseRequested="OnTabCloseRequested"
+                 SelectionChanged="OnTabSelectionChanged"
+                 TabStripDrop="OnTabStripDrop" />
+    </Grid>
+</Window>

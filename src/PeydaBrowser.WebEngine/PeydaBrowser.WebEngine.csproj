@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Description>Engine-agnostic web policies for Peyda Browser: internal peyda:// routing, navigation decisions, permission mapping and URL display safety (IDN homograph protection). The concrete Microsoft Edge WebView2 hosting lives in PeydaBrowser.App because the WebView2 XAML control requires the Windows target framework.</Description>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\PeydaBrowser.Core\PeydaBrowser.Core.csproj" />
+  </ItemGroup>
+</Project>

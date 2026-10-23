@@ -12,6 +12,7 @@ using PeydaBrowser.Core.Interfaces;
 using PeydaBrowser.Core.Models;
 using PeydaBrowser.Core.Security;
 using PeydaBrowser.WebEngine;
+using LocKeys = PeydaBrowser.Core.Services.LocKeys;
 using Windows.Storage.Streams;
 using Windows.System;
 using Windows.UI.Core;
@@ -280,10 +281,33 @@ public sealed partial class BrowserTabView : UserControl, IBrowserTabView
         }
     }
 
+    private double _zoomFactor = 1.0;
+
+    /// <summary>
+    /// The WinUI WebView2 control (unlike the WPF one) exposes no ZoomFactor,
+    /// and the XAML wrapper hides the underlying controller. Peyda therefore
+    /// applies Chromium's CSS zoom on the document element and re-applies it
+    /// after every completed navigation.
+    /// </summary>
     public double ZoomFactor
     {
-        get => _webView?.ZoomFactor ?? 1.0;
-        set { if (_webView is not null) _webView.ZoomFactor = value; }
+        get => _zoomFactor;
+        set
+        {
+            _zoomFactor = Math.Clamp(value, 0.25, 5.0);
+            _ = ApplyZoomAsync();
+        }
+    }
+
+    private async Task ApplyZoomAsync()
+    {
+        if (Core is null) return;
+        try
+        {
+            var factor = _zoomFactor.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            await Core.ExecuteScriptAsync($"document.documentElement.style.zoom = '{factor}';");
+        }
+        catch (Exception) { /* renderer busy/gone; zoom re-applies on next navigation */ }
     }
 
     public void OpenDevTools()
@@ -294,7 +318,7 @@ public sealed partial class BrowserTabView : UserControl, IBrowserTabView
 
     public void Print()
     {
-        try { Core?.ShowPrintUI(); } catch (Exception) { /* printing unavailable */ }
+        try { Core?.ShowPrintUI(CoreWebView2PrintDialogKind.System); } catch (Exception) { /* printing unavailable */ }
     }
 
     public async Task ClearSiteDataAsync(ClearTimeRange range)
@@ -386,6 +410,7 @@ public sealed partial class BrowserTabView : UserControl, IBrowserTabView
 
     private void OnNavigationCompleted(CoreWebView2 sender, CoreWebView2NavigationCompletedEventArgs e)
     {
+        if (_zoomFactor != 1.0) _ = ApplyZoomAsync();
         if (_vm is null) return;
         _vm.OnHistoryStateChanged(sender.CanGoBack, sender.CanGoForward);
         var kind = e.IsSuccess ? (PageErrorKind?)null : BrowserErrorMapper.FromWebErrorStatusName(e.WebErrorStatus.ToString());
@@ -406,15 +431,10 @@ public sealed partial class BrowserTabView : UserControl, IBrowserTabView
         if (_vm is null) return;
         try
         {
-            await using var stream = await sender.GetFaviconAsync(CoreWebView2FaviconImageFormat.Png);
-            using var memory = new MemoryStream();
-            await stream.CopyToAsync(memory);
-            memory.Position = 0;
-            var randomAccess = new InMemoryRandomAccessStream();
-            await memory.CopyToAsync(randomAccess.AsStreamForWrite());
-            randomAccess.Seek(0);
+            using var stream = await sender.GetFaviconAsync(CoreWebView2FaviconImageFormat.Png);
+            stream.Seek(0);
             var bitmap = new BitmapImage();
-            await bitmap.SetSourceAsync(randomAccess);
+            await bitmap.SetSourceAsync(stream);
             _vm.Favicon = bitmap;
         }
         catch (Exception)
@@ -521,18 +541,18 @@ public sealed partial class BrowserTabView : UserControl, IBrowserTabView
         var strings = Shell.Strings;
         var kindText = strings.Inner[kind switch
         {
-            BrowserPermissionKind.Camera => Core.Services.LocKeys.PermissionCamera,
-            BrowserPermissionKind.Microphone => Core.Services.LocKeys.PermissionMicrophone,
-            BrowserPermissionKind.Geolocation => Core.Services.LocKeys.PermissionGeolocation,
-            BrowserPermissionKind.Notifications => Core.Services.LocKeys.PermissionNotifications,
-            BrowserPermissionKind.ClipboardRead => Core.Services.LocKeys.PermissionClipboard,
-            _ => Core.Services.LocKeys.PermissionOther
+            BrowserPermissionKind.Camera => LocKeys.PermissionCamera,
+            BrowserPermissionKind.Microphone => LocKeys.PermissionMicrophone,
+            BrowserPermissionKind.Geolocation => LocKeys.PermissionGeolocation,
+            BrowserPermissionKind.Notifications => LocKeys.PermissionNotifications,
+            BrowserPermissionKind.ClipboardRead => LocKeys.PermissionClipboard,
+            _ => LocKeys.PermissionOther
         }];
         var remember = new CheckBox { Content = strings.PermissionRemember };
         var content = new StackPanel { Spacing = 10 };
         content.Children.Add(new TextBlock
         {
-            Text = strings.Format(Core.Services.LocKeys.PermissionMessage, origin, kindText),
+            Text = strings.Format(LocKeys.PermissionMessage, origin, kindText),
             TextWrapping = TextWrapping.WrapWholeWords
         });
         content.Children.Add(remember);
@@ -564,7 +584,7 @@ public sealed partial class BrowserTabView : UserControl, IBrowserTabView
             {
                 XamlRoot = XamlRoot,
                 Title = strings.ErrorCertTitle,
-                Content = strings.Format(Core.Services.LocKeys.ErrorCertMessage, host, e.ErrorStatus.ToString()),
+                Content = strings.Format(LocKeys.ErrorCertMessage, host, e.ErrorStatus.ToString()),
                 PrimaryButtonText = strings.ErrorCertProceed,
                 CloseButtonText = strings.ErrorCertGoBack,
                 DefaultButton = ContentDialogButton.Close

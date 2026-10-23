@@ -131,18 +131,24 @@ public sealed partial class MainWindow : Window
         await _vm.InitializeTabsAsync(_initialUrl);
     }
 
+    private bool _closeAfterSave;
+
     private async void OnAppWindowClosing(AppWindow sender, AppWindowClosingEventArgs args)
     {
-        if (_vm.IsPrivateWindow) return;
-        var deferral = args.GetDeferral();
+        // AppWindowClosingEventArgs has no deferral: cancel the first close,
+        // save the session asynchronously, then close for real.
+        if (_vm.IsPrivateWindow || _closeAfterSave) return;
+        args.Cancel = true;
+        _closeAfterSave = true;
         try
         {
             await _vm.SaveSessionAsync();
         }
-        finally
+        catch (Exception)
         {
-            deferral.Complete();
+            // Never trap the user in an unclosable window because saving failed.
         }
+        Close();
     }
 
     // ============================================================ settings / theme

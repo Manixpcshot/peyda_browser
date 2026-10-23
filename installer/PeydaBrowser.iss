@@ -21,11 +21,16 @@
 #ifndef OutputDir
   #define OutputDir "Output"
 #endif
+; Numeric x.x.x.x for the PE version resource - AppVersion may carry a
+; SemVer prerelease suffix (e.g. 0.1.0-alpha), which VersionInfoVersion rejects.
+#ifndef NumericVersion
+  #define NumericVersion "0.0.0.0"
+#endif
 
 #define AppName "Peyda Browser"
 #define AppPublisher "Peyda Browser Contributors"
 #define AppExe "PeydaBrowser.exe"
-#define AppIdValue "{{8E1D2C3A-4B5F-46A7-9D8E-PEYDA0000001}"
+#define AppIdValue "{{8D5C5A95-86BD-4C38-BCC3-6D3FBD797640}"
 
 [Setup]
 AppId={#AppIdValue}
@@ -35,7 +40,7 @@ AppVerName={#AppName} {#AppVersion}
 AppPublisher={#AppPublisher}
 AppPublisherURL=https://github.com/Manixpcshot/peyda_browser
 AppSupportURL=https://github.com/Manixpcshot/peyda_browser/issues
-VersionInfoVersion={#AppVersion}
+VersionInfoVersion={#NumericVersion}
 DefaultDirName={autopf}\Peyda Browser
 DefaultGroupName=Peyda Browser
 DisableProgramGroupPage=yes

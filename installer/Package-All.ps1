@@ -57,7 +57,11 @@ try {
     }
     if (-not $iscc) { throw 'Inno Setup compiler (ISCC.exe) not found. Install with: choco install innosetup' }
 
-    & $iscc "/DAppVersion=$Version" "/DArch=$Arch" "/DPublishDir=$PublishDir" "/DOutputDir=$OutDir" (Join-Path $PSScriptRoot 'PeydaBrowser.iss')
+    # Inno's VersionInfoVersion must be numeric (no "-alpha" suffix)
+    $numericParts = @(($Version -split '-')[0].Split('.'))
+    while ($numericParts.Count -lt 4) { $numericParts += '0' }
+    $numericVersion = ($numericParts[0..3] -join '.')
+    & $iscc "/DAppVersion=$Version" "/DNumericVersion=$numericVersion" "/DArch=$Arch" "/DPublishDir=$PublishDir" "/DOutputDir=$OutDir" (Join-Path $PSScriptRoot 'PeydaBrowser.iss')
     if ($LASTEXITCODE -ne 0) { throw "Inno Setup failed with exit code $LASTEXITCODE" }
     $setupExe = Join-Path $OutDir "PeydaBrowser-Setup-$Version-win-$Arch.exe"
     if (-not (Test-Path $setupExe)) { throw "Expected setup file was not produced: $setupExe" }

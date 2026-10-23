@@ -6,7 +6,7 @@ public sealed record SchemaMigration(int Version, string Name, string Sql);
 
 public static class SchemaMigrations
 {
-    public static IReadOnlyList<SchemaMigration> All { get; } = new[] { V1, V2 };
+    public static IReadOnlyList<SchemaMigration> All { get; } = new SchemaMigration[] { V1, V2 };
     public static int LatestVersion => All[^1].Version;
 
     private static readonly SchemaMigration V1 = new(1, "Initial schema", """

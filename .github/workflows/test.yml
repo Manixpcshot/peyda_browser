@@ -37,10 +37,10 @@ jobs:
           dotnet restore tests/PeydaBrowser.IntegrationTests/PeydaBrowser.IntegrationTests.csproj
 
       - name: Run unit tests
-        run: dotnet test tests/PeydaBrowser.UnitTests/PeydaBrowser.UnitTests.csproj -c Release --logger "trx;LogFileName=unit-tests.trx" --results-directory artifacts/test-results
+        run: dotnet test tests/PeydaBrowser.UnitTests/PeydaBrowser.UnitTests.csproj -c Release
 
       - name: Run integration tests
-        run: dotnet test tests/PeydaBrowser.IntegrationTests/PeydaBrowser.IntegrationTests.csproj -c Release --logger "trx;LogFileName=integration-tests.trx" --results-directory artifacts/test-results
+        run: dotnet test tests/PeydaBrowser.IntegrationTests/PeydaBrowser.IntegrationTests.csproj -c Release
 
       - name: Upload test results
         if: always()
